@@ -11,8 +11,22 @@ export function generateChatId(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+type ChatStore = { [key: string]: Message[] };
+
+export function getChatMessages(chatId?: string): ChatStore | Message[] {
+  const chats = localStorage.getItem('chats');
+  const allChats = (chats ? JSON.parse(chats) : {}) as ChatStore;
+  
+  // If chatId is provided, return only that chat's messages
+  if (chatId) {
+    return allChats[chatId] || [];
+  }
+  
+  return allChats;
+}
+
 export function forkChat(chatId: string, messageIndex: number): string {
-  const chats = getChatMessages();
+  const chats = getChatMessages() as ChatStore;
   const originalChat = chats[chatId];
   
   if (!originalChat) return '';
@@ -43,7 +57,7 @@ export function forkChat(chatId: string, messageIndex: number): string {
 }
 
 export function saveChat(chat: Chat): void {
-  const chats = getChatMessages();
+  const chats = getChatMessages() as ChatStore;
   chats[chat.id] = chat.messages;
   localStorage.setItem('chats', JSON.stringify(chats));
 
@@ -70,18 +84,13 @@ export function saveChat(chat: Chat): void {
   localStorage.setItem('chatHistory', JSON.stringify(history));
 }
 
-export function getChatMessages(chatId?: string): { [key: string]: Message[] } {
-  const chats = localStorage.getItem('chats');
-  return chats ? JSON.parse(chats) : {};
-}
-
 export function getChatHistory(): ChatHistory[] {
   const history = localStorage.getItem('chatHistory');
   return history ? JSON.parse(history) : [];
 }
 
 export function deleteChat(chatId: string): void {
-  const chats = getChatMessages();
+  const chats = getChatMessages() as ChatStore;
   delete chats[chatId];
   localStorage.setItem('chats', JSON.stringify(chats));
 
